@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -12,6 +13,12 @@ type Tuple[T any, K any] struct {
 	First  T
 	Second K
 }
+
+type BySecond []Tuple[string, int]
+
+func (a BySecond) Len() int           { return len(a) }
+func (a BySecond) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a BySecond) Less(i, j int) bool { return a[i].Second < a[j].Second }
 
 type File struct {
 	size int
@@ -94,15 +101,27 @@ func main() {
 
 	atMost100_000 := 0
 	for i := 0; i < len(dirSizes); i++ {
-		name := dirSizes[i].First
 		size := dirSizes[i].Second
-		println(name, size)
 		if size < 100_000 {
 			atMost100_000 += size
 		}
 	}
 
 	// println(atMost100_000)
+
+	sort.Sort(BySecond(dirSizes))
+	totalSpace := 70_000_000
+	leastUnused := 30_000_000
+	used := dirSizes[len(dirSizes)-1].Second
+	freeSpace := totalSpace - used
+
+	for i := 0; i < len(dirSizes); i++ {
+		size := dirSizes[i].Second
+		if freeSpace+size >= leastUnused {
+			println(size)
+			break
+		}
+	}
 
 	if err := scanner.Err(); err != nil {
 		panic(err)
